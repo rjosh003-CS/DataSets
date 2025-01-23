@@ -1,97 +1,72 @@
 import pandas as pd
 import numpy as np
 
-def calculate_cumulative_inflation_implied_inflation(principal_value: float=None,
-                                   current_value: float=None,
-                                   implied_inflation: float= None,
-                                    n: int=10,
-                                    currency_symbol: str = "£"
-                                ) -> None:
+def calculate_cumulative_inflation_implied_inflation(principal_value: float = None,
+                                                     current_value: float = None,
+                                                     implied_inflation: float = None,
+                                                     n: int = 10,
+                                                     currency_symbol: str = "£") -> None:
     """
-        Calculate break even future value using cummulative inflation.
+    Calculate break-even future value using implied inflation.
 
-        pricipal_value: initial value of the asset
-            defalue is None
-        current_value: present value of the asset
-            defalue is None
-        implied_inflation: average implied inflation of the country over the period in time intervale of years
-            defalue is None
-        n: number of years
-            defalue is 10
-        currency_symbol: currency symbol to be used in the output
-            defalue is £
+    Args:
+        principal_value: Initial value of the asset (default is None).
+        current_value: Present value of the asset (default is None).
+        implied_inflation: Average implied inflation rate over the period (default is None).
+        n: Number of years (default is 10).
+        currency_symbol: Currency symbol to use in the output (default is £).
 
-        returns: None
+    Returns:
+        None
     """
-    # check
-    if principal_value is None or cumulative_inflation is None or current_value is None:
-        raise(ValueError("principal_value, current_value and cumulative_inflation cannot be none! "))
-
-
-    PV = principal_value
-    i = implied_inflation
+    if principal_value is None or implied_inflation is None or current_value is None:
+        raise ValueError("principal_value, current_value, and implied_inflation cannot be None!")
 
     print(f"Principal value: {currency_symbol}{principal_value:,}")
     print(f"Current value: {currency_symbol}{current_value:,}")
-    print(f"cummulatice implied inflation: {cumulative_inflation}")
+    print(f"Implied inflation: {implied_inflation:.2%}")
 
-    #  Break even Future value based on current value
-    FV = PV * (1 + i)**n
-
-    #  Calculating P/L using Breakeven value with the current value(Future Value)
+    # Break-even future value
+    FV = principal_value * (1 + implied_inflation) ** n
     print(f"Break-Even Future Value: {currency_symbol}{FV:,.2f}")
-    diff = avg_current_price - FV
+
+    # Difference in value
+    diff = current_value - FV
     if diff < 0:
-        print(f"\nloss of : {currency_symbol}{diff:,.2f}")
+        print(f"Loss of: {currency_symbol}{abs(diff):,.2f}")
     else:
-        print(f"\nprofit of : {currency_symbol}{diff:,.2f}")
+        print(f"Profit of: {currency_symbol}{diff:,.2f}")
 
-
-
-
-def calculate_cumulative_inflation(principal_value: float=None,
-                                   current_value: float=None,
-                                   cumulative_inflation: float= None,
-                                   currency_symbol: str="£") -> None:
-
+def calculate_cumulative_inflation(principal_value: float = None,
+                                   current_value: float = None,
+                                   cumulative_inflation: float = None,
+                                   currency_symbol: str = "£") -> None:
     """
-        Calculate break even future value using cummulative inflation.
+    Calculate break-even future value using cumulative inflation.
 
-        Args:
+    Args:
+        principal_value: Initial value of the asset (default is None).
+        current_value: Present value of the asset (default is None).
+        cumulative_inflation: Cumulative inflation rate (default is None).
+        currency_symbol: Currency symbol to use in the output (default is £).
 
-        pricipal_value: initial value of the asset
-            defalue is None
-        current_value: present value of the asset
-            defalue is None
-        cumulative_inflation: cumulative inflation of the country over the
-        period in time intervale of years
-            defalue is None
-        currency_symbol: currency symbol to be used in the output
-            defalue is £
-            
-        returns: None
+    Returns:
+        None
     """
-
-    # check
     if principal_value is None or cumulative_inflation is None or current_value is None:
-        raise(ValueError("principal_value, current_value and cumulative_inflation cannot be none! "))
+        raise ValueError("principal_value, current_value, and cumulative_inflation cannot be None!")
 
-    PV = principal_value
     print(f"Principal value: {currency_symbol}{principal_value:,}")
     print(f"Current value: {currency_symbol}{current_value:,}")
-    print(f"cummulatice implied inflation: {cumulative_inflation}")
+    print(f"Cumulative inflation: {cumulative_inflation:.2%}")
 
-    # Break even future value
-    FV = PV / (cumulative_inflation)
+    # Break-even future value
+    FV = principal_value / cumulative_inflation
+    print(f"Break-Even Future Value: {currency_symbol}{FV:,.2f}")
 
-    #  Calculating the difference in current value from break even future value
-    diff = avg_current_price - FV
-
-    #  Calculating P/L using Breakeven value with the current value(Future Value)
-    print(f"\nBreak-Even Future Value: {currency_symbol}{FV:,.2f}")
-    print(f"\ndifference in Value: {currency_symbol}{diff:,.2f}")
-
+    # Difference in value
+    diff = current_value - FV
     if diff < 0:
-        print(f"\nloss of : {currency_symbol}{diff:,.2f}")
+        print(f"Loss of: {currency_symbol}{abs(diff):,.2f}")
     else:
-        print(f"\nprofit of : {currency_symbol}{diff:,.2f}")
+        print(f"Profit of: {currency_symbol}{diff:,.2f}")
