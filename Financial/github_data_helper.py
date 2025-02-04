@@ -107,7 +107,8 @@ def load_git_data(file_path: Dict = None,
 
 def ls_files(path="."):
     """Lists files in the specified directory with their sizes."""
-    print(f"Checking files in directory: {path}", flush=True)  # Force flush
+    path = os.path.abspath(path)  # Convert to absolute path
+    print(f"Checking files in directory: {path}", flush=True)
 
     if not os.path.exists(path):
         print("Directory does not exist.", flush=True)
@@ -119,7 +120,7 @@ def ls_files(path="."):
     if not files:
         print("No files found in directory.", flush=True)
         return
-    
+
     for filename in files:
         filepath = os.path.join(path, filename)
         if os.path.isfile(filepath):  # Ensure it's a file, not a folder
@@ -132,6 +133,7 @@ def ls_files(path="."):
                 print(f"{filename} {size}B", flush=True)
         else:
             print(f"{filename} (Not a file, might be a directory)")
+
 
 
 
