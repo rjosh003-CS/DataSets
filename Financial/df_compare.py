@@ -14,6 +14,14 @@ def compare_dataframes(df1:pd.DataFrame = None,
         None
     """
 
+    # checks
+    if not isinstance(df1, pd.DataFrame):
+        raise(ValueError("df1 is not DataFrame!"))
+
+    if not isinstance(df2, pd.DataFrame):
+        raise(ValueError("df2 is not DataFrame!"))
+
+    # try-except block
     try:
         # Attempt to assert that DataFrames are equal
         tm.assert_frame_equal(df1, df2)
