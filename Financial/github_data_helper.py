@@ -100,11 +100,19 @@ def load_git_data(file_path: Dict = None,
     return data
 
 
-
-def ls_files(out_dir="."):  # Default to current directory if out_dir is not provided
+def ls_files(out_dir="."):
     """Lists files in the specified directory with their sizes."""
-    command = f"ls -l {out_dir} | awk '{{size=$5; if (size >= 1048576) printf \"%s %.2fM\\n\", $9, size/1048576; else if (size >= 1024) printf \"%s %.2fK\\n\", $9, size/1024; else printf \"%s %dB\\n\", $9, size}}'"
-    os.system(command)
+    for filename in os.listdir(out_dir):
+        filepath = os.path.join(out_dir, filename)
+        size = os.path.getsize(filepath)
+        if size >= 1048576:
+            print(f"{filename} {size / 1048576:.2f}M")
+        elif size >= 1024:
+            print(f"{filename} {size / 1024:.2f}K")
+        else:
+            print(f"{filename} {size}B")
+
+
 
 
 #  Example of loading files
