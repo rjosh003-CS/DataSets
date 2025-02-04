@@ -4,6 +4,16 @@ import os
 import time
 from typing import Union, Dict
 import subprocess
+import pexpect
+
+def download_file(url, filename):
+    """Downloads a file using wget with a visible progress bar in Colab."""
+    command = f'wget "{url}" -O "{filename}" --show-progress'
+    child = pexpect.spawn(command, timeout=None)
+    
+    # Display real-time progress
+    child.interact()
+
 
 def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
     """Downloads raw data files if they don't exist locally and renames keys.
@@ -38,16 +48,7 @@ def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
         updated_file_path[new_file_name] = file_url  
 
         if not os.path.exists(new_file_name):
-            command = f'wget "{file_url}" -O "{new_file_name}" --show-progress'
-            print(f"Downloading {file_name}...", flush=True)  # Debugging output
-            
-            # command and stream output in real-time
-            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-            for line in process.stdout:
-                sys.stdout.write(line)  # Print each line immediately
-                sys.stdout.flush()  # Force immediate output
-            
-            process.wait()  # Ensure process completes
+            download_file(url=file_url, filename=file_name)
         else:
             print(f"{new_file_name} already exists")
 
