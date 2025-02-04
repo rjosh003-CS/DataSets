@@ -75,7 +75,7 @@ def load_git_data(file_path: Dict = None,
     # List files with sizes (using updated file paths)
     print("\n\n", "**" * 15)
     print("\n$ls -lh")
-    ls_files(out_dir=out_dir)
+    ls_files(path=out_dir)
     print("\n\n", "**" * 15)
 
     # Read and concatenate data (using updated file paths)
