@@ -36,7 +36,8 @@ def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
 
         if not os.path.exists(new_file_name):
             # Using wget to download to the new file name
-            !wget "{file_url}" -O "{new_file_name}" -q --show-progress  
+            command = f'wget "{file_url}" -O "{new_file_name}" -q --show-progress'
+            os.system(command)  
         else:
             print(f"{new_file_name} already exists")
 
@@ -119,4 +120,3 @@ def ls_files():
 # # print(data.shape)
 # data = load_git_data(file_path=file_path, interval='1d', out_dir="data")
 # data.head()
-
