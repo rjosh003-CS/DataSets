@@ -40,7 +40,14 @@ def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
         if not os.path.exists(new_file_name):
             command = f'wget "{file_url}" -O "{new_file_name}" --show-progress'
             print(f"Downloading {file_name}...", flush=True)  # Debugging output
-            subprocess.run(command, shell=True, check=True)  # ✅ Use subprocess.run()
+            
+            # command and stream output in real-time
+            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            for line in process.stdout:
+                sys.stdout.write(line)  # Print each line immediately
+                sys.stdout.flush()  # Force immediate output
+            
+            process.wait()  # Ensure process completes
         else:
             print(f"{new_file_name} already exists")
 
