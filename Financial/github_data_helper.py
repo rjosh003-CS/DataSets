@@ -4,15 +4,29 @@ import os
 import time
 from typing import Union, Dict
 import subprocess
-import pexpect
+# import pexpect
+
+# def download_file(url, filename):
+#     """Downloads a file using wget with a visible progress bar in Colab."""
+#     command = f'wget "{url}" -O "{filename}" --show-progress'
+#     child = pexpect.spawn(command, timeout=None)
+    
+#     # Display real-time progress
+#     child.interact()
+
+import requests
+from tqdm import tqdm
 
 def download_file(url, filename):
-    """Downloads a file using wget with a visible progress bar in Colab."""
-    command = f'wget "{url}" -O "{filename}" --show-progress'
-    child = pexpect.spawn(command, timeout=None)
-    
-    # Display real-time progress
-    child.interact()
+    response = requests.get(url, stream=True)
+    total_size = int(response.headers.get("content-length", 0))
+
+    with open(filename, "wb") as file, tqdm(
+        desc=filename, total=total_size, unit="B", unit_scale=True
+    ) as progress_bar:
+        for chunk in response.iter_content(chunk_size=1024):
+            file.write(chunk)
+            progress_bar.update(len(chunk))
 
 
 def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
