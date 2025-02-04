@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 from typing import Union, Dict
+import sys
+from pathlib import Path
 
 
 
@@ -77,7 +79,8 @@ def load_git_data(file_path: Dict = None,
     # List files with sizes (using updated file paths)
     print("\n\n", "**" * 15)
     print("\n$ls -lh")
-    ls_files(path=out_dir)
+    path = Path(out_dir)
+    ls_files(path=path)
     print("\n\n", "**" * 15)
 
     # Read and concatenate data (using updated file paths)
@@ -104,14 +107,17 @@ def load_git_data(file_path: Dict = None,
 
 def ls_files(path="."):
     """Lists files in the specified directory with their sizes."""
-    print(f"Checking files in directory: {path}")  # Debug statement
+    print(f"Checking files in directory: {path}", flush=True)  # Force flush
+
     if not os.path.exists(path):
-        print("Directory does not exist.")
+        print("Directory does not exist.", flush=True)
         return
 
     files = os.listdir(path)
+    print(f"Files found: {files}", flush=True)  # Debug print
+
     if not files:
-        print("No files found in directory.")
+        print("No files found in directory.", flush=True)
         return
     
     for filename in files:
@@ -126,6 +132,8 @@ def ls_files(path="."):
                 print(f"{filename} {size}B", flush=True)
         else:
             print(f"{filename} (Not a file, might be a directory)")
+
+
 
 
 
