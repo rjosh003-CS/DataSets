@@ -1,7 +1,8 @@
 import pandas as pd
 import pandas.testing as tm  # Import the testing module
 
-def compare_dataframes(df1, df2):
+def compare_dataframes(df1:pd.DataFrame = None,
+                       df2: pd.DataFrame = None) -> None:
     """
     Compares two DataFrames using pandas.testing and prints a detailed analysis.
 
@@ -60,7 +61,9 @@ def compare_dataframes(df1, df2):
 
 
 
-def compare_dfs(df1, df2, to_timestamp=True):
+def compare_dfs(df1: pd.DataFrame = None,
+                df2: pd.DataFrame = None,
+                to_timestamp=True) -> None:
     """
     Compares two DataFrames using pandas.testing and prints a detailed analysis.
 
