@@ -75,7 +75,7 @@ def load_git_data(file_path: Dict = None,
     # List files with sizes (using updated file paths)
     print("\n\n", "**" * 15)
     print("\n$ls -lh")
-    ls_files()
+    ls_files(out_dir=out_dir)
     print("\n\n", "**" * 15)
 
     # Read and concatenate data (using updated file paths)
@@ -99,10 +99,12 @@ def load_git_data(file_path: Dict = None,
     print("\n\ndata shape : ", data.shape)
     return data
 
-def ls_files():
-    """Lists files in the current directory with their sizes."""
-    !ls -l | awk '{size=$5; if (size >= 1048576) printf "%s %.2fM\n", $9, size/1048576; else if (size >= 1024) printf "%s %.2fK\n", $9, size/1024; else printf "%s %dB\n", $9, size}'
 
+
+def ls_files(out_dir="."):  # Default to current directory if out_dir is not provided
+    """Lists files in the specified directory with their sizes."""
+    command = f"ls -l {out_dir} | awk '{{size=$5; if (size >= 1048576) printf \"%s %.2fM\\n\", $9, size/1048576; else if (size >= 1024) printf \"%s %.2fK\\n\", $9, size/1024; else printf \"%s %dB\\n\", $9, size}}'"
+    os.system(command)
 
 
 #  Example of loading files
