@@ -100,18 +100,17 @@ def load_git_data(file_path: Dict = None,
     return data
 
 
-def ls_files(out_dir="."):
-    """Lists files in the specified directory with their sizes."""
-    for filename in os.listdir(out_dir):
-        filepath = os.path.join(out_dir, filename)
-        size = os.path.getsize(filepath)
-        if size >= 1048576:
-            print(f"{filename} {size / 1048576:.2f}M")
-        elif size >= 1024:
-            print(f"{filename} {size / 1024:.2f}K")
-        else:
-            print(f"{filename} {size}B")
-
+def ls_files(path="."):
+   """Lists files in the specified directory with their sizes."""
+   for filename in os.listdir(path):
+       filepath = os.path.join(path, filename)
+       size = os.path.getsize(filepath)
+       if size >= 1048576:
+           print(f"{filename} {size / 1048576:.2f}M")
+       elif size >= 1024:
+           print(f"{filename} {size / 1024:.2f}K")
+       else:
+           print(f"{filename} {size}B")
 
 
 
