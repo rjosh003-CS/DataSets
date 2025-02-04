@@ -1,9 +1,9 @@
 import pandas as pd
+from pathlib import Path
 import os
-import subprocess
 import time
 from typing import Union, Dict
-from pathlib import Path
+import subprocess
 
 def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
     """Downloads raw data files if they don't exist locally and renames keys.
@@ -39,12 +39,13 @@ def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
 
         if not os.path.exists(new_file_name):
             command = f'wget "{file_url}" -O "{new_file_name}" --show-progress'
-            print(f"Downloading {file_name}...", flush=True)
-            subprocess.run(command, shell=True, check=True) 
+            print(f"Downloading {file_name}...", flush=True)  # Debugging output
+            subprocess.run(command, shell=True, check=True)  # ✅ Use subprocess.run()
         else:
             print(f"{new_file_name} already exists")
 
     return updated_file_path
+
 
 
 def load_git_data(file_path: Dict = None,
