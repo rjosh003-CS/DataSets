@@ -2,6 +2,8 @@ import pandas as pd
 import os
 from typing import Union, Dict
 
+
+
 def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
     """Downloads raw data files if they don't exist locally and renames keys.
 
@@ -121,7 +123,7 @@ def ls_files(path="."):
             elif size >= 1024:
                 print(f"{filename} {size / 1024:.2f}K")
             else:
-                print(f"{filename} {size}B")
+                print(f"{filename} {size}B", flush=True)
         else:
             print(f"{filename} (Not a file, might be a directory)")
 
