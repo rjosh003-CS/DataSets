@@ -1,10 +1,8 @@
 import pandas as pd
 import os
+import time
 from typing import Union, Dict
-import sys
 from pathlib import Path
-
-
 
 def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
     """Downloads raw data files if they don't exist locally and renames keys.
@@ -27,30 +25,30 @@ def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
     if len(file_path) == 0:
         raise ValueError("file_path cannot be empty")
 
-    # Create output directory if needed
+    # Ensure output directory is absolute path
+    out_dir = os.path.abspath(out_dir)
     if len(out_dir) > 0:
         os.makedirs(out_dir, exist_ok=True)
 
     # Rename keys and download files
-    updated_file_path = {}  # Store updated file paths
+    updated_file_path = {}  
     for file_name, file_url in file_path.items():
-        # Rename the key (file_name) by adding out_dir as a prefix
         new_file_name = os.path.join(out_dir, file_name)  
-        updated_file_path[new_file_name] = file_url  # Add to the updated dictionary
+        updated_file_path[new_file_name] = file_url  
 
         if not os.path.exists(new_file_name):
-            # Using wget to download to the new file name
             command = f'wget "{file_url}" -O "{new_file_name}" -q --show-progress'
             os.system(command)  
         else:
             print(f"{new_file_name} already exists")
 
-    return updated_file_path  # Return the updated dictionary
+    return updated_file_path
 
 
 def load_git_data(file_path: Dict = None,
                   interval: Union[str, None] = None,
-                  out_dir: str = "") -> pd.DataFrame:
+                  out_dir: str = "",
+                  debug: bool =False) -> pd.DataFrame:
     """
     Loads data from a Git repository for reproducibility.
 
@@ -73,25 +71,38 @@ def load_git_data(file_path: Dict = None,
     if len(file_path) == 0:
         raise ValueError("file_path cannot be empty")
 
+    # Convert to absolute path
+    out_dir = os.path.abspath(out_dir)
+
     # Download raw files and get updated file_path
-    updated_file_path = load_raw_data(file_path, out_dir)  # Get updated dict
+    updated_file_path = load_raw_data(file_path, out_dir)  
 
-    # List files with sizes (using updated file paths)
-    print("\n\n", "**" * 15)
-    print("\n$ls -lh")
-    path = Path(out_dir)
-    ls_files(path=path)
+    if debug:
+        # Debugging output
+        print("\n\n", "**" * 15)
+        print("\n$ls -lh")
+        print(f"DEBUG: out_dir = {out_dir}")
+        print(f"DEBUG: Absolute path = {os.path.abspath(out_dir)}")
+        print(f"DEBUG: Directory exists? {os.path.exists(out_dir)}")
+        print(f"DEBUG: Contents of {out_dir}: {os.listdir(out_dir) if os.path.exists(out_dir) else 'Directory missing'}")
+
+    # Sleep to prevent Colab caching issues
+    time.sleep(1)
+
+    # List files
+    ls_files(path=out_dir)
     print("\n\n", "**" * 15)
 
-    # Read and concatenate data (using updated file paths)
+    # Read and concatenate data
     data = pd.DataFrame()
-    for file_name in updated_file_path.keys():  # Iterate over updated keys
+    for file_name in updated_file_path.keys():
         try:
             df = pd.read_csv(f"{file_name}", header=[0, 1], index_col=0)
         except pd.errors.EmptyDataError:
             print(f"Skipping empty file: {file_name}")
             continue
-        print(df.shape)
+        file = Path(file_name)
+        print(f"shape of df from {file.name} :  {df.shape}")
 
         # Process data
         df.index = pd.to_datetime(df.index, utc=True).tz_localize(None)
@@ -105,17 +116,19 @@ def load_git_data(file_path: Dict = None,
     return data
 
 
-def ls_files(path="."):
+def ls_files(path=".", debug=False):
     """Lists files in the specified directory with their sizes."""
     path = os.path.abspath(path)  # Convert to absolute path
-    print(f"Checking files in directory: {path}", flush=True)
+    print(f"\n\nChecking files in directory: {path}", flush=True)
 
     if not os.path.exists(path):
         print("Directory does not exist.", flush=True)
         return
 
     files = os.listdir(path)
-    print(f"Files found: {files}", flush=True)  # Debug print
+
+    if debug:
+        print(f"Files found: {files}", flush=True)  # Debug print
 
     if not files:
         print("No files found in directory.", flush=True)
@@ -123,7 +136,7 @@ def ls_files(path="."):
 
     for filename in files:
         filepath = os.path.join(path, filename)
-        if os.path.isfile(filepath):  # Ensure it's a file, not a folder
+        if os.path.isfile(filepath):
             size = os.path.getsize(filepath)
             if size >= 1048576:
                 print(f"{filename} {size / 1048576:.2f}M")
@@ -137,21 +150,18 @@ def ls_files(path="."):
 
 
 
+# #  Example of loading files
+# # file_path = {
+# #     # file 1
+# #     "S&P500_5year_daily_data_0.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_0.csv",
 
+# #     # file 2
+# #     "S&P500_5year_daily_data_1.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_1.csv",
 
+# #     # file 3
+# #     "S&P500_5year_daily_data_2.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_2.csv"
+# # }
 
-#  Example of loading files
-# file_path = {
-#     # file 1
-#     "S&P500_5year_daily_data_0.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_0.csv",
-
-#     # file 2
-#     "S&P500_5year_daily_data_1.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_1.csv",
-
-#     # file 3
-#     "S&P500_5year_daily_data_2.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_2.csv"
-# }
-
-# # print(data.shape)
-# data = load_git_data(file_path=file_path, interval='1d', out_dir="data")
-# data.head()
+# # # print(data.shape)
+# # data = load_git_data(file_path=file_path, interval='1d', out_dir="data")
+# # data.head()
