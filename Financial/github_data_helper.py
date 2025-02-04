@@ -101,16 +101,30 @@ def load_git_data(file_path: Dict = None,
 
 
 def ls_files(path="."):
-   """Lists files in the specified directory with their sizes."""
-   for filename in os.listdir(path):
-       filepath = os.path.join(path, filename)
-       size = os.path.getsize(filepath)
-       if size >= 1048576:
-           print(f"{filename} {size / 1048576:.2f}M")
-       elif size >= 1024:
-           print(f"{filename} {size / 1024:.2f}K")
-       else:
-           print(f"{filename} {size}B")
+    """Lists files in the specified directory with their sizes."""
+    print(f"Checking files in directory: {path}")  # Debug statement
+    if not os.path.exists(path):
+        print("Directory does not exist.")
+        return
+
+    files = os.listdir(path)
+    if not files:
+        print("No files found in directory.")
+        return
+    
+    for filename in files:
+        filepath = os.path.join(path, filename)
+        if os.path.isfile(filepath):  # Ensure it's a file, not a folder
+            size = os.path.getsize(filepath)
+            if size >= 1048576:
+                print(f"{filename} {size / 1048576:.2f}M")
+            elif size >= 1024:
+                print(f"{filename} {size / 1024:.2f}K")
+            else:
+                print(f"{filename} {size}B")
+        else:
+            print(f"{filename} (Not a file, might be a directory)")
+
 
 
 
