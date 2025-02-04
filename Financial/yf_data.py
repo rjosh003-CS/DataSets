@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import List
+from typing import List 
 from datetime import datetime
 
 def load_data_via_yfinance_api(df:pd.DataFrame = None,
