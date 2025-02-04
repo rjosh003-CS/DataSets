@@ -37,7 +37,7 @@ def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
         updated_file_path[new_file_name] = file_url  
 
         if not os.path.exists(new_file_name):
-            command = f'wget "{file_url}" -O "{new_file_name}" -q --show-progress'
+            command = f'wget "{file_url}" -O "{new_file_name}" --show-progress'
             os.system(command)  
         else:
             print(f"{new_file_name} already exists")
