@@ -38,7 +38,8 @@ def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
 
         if not os.path.exists(new_file_name):
             command = f'wget "{file_url}" -O "{new_file_name}" --show-progress'
-            os.system(command)  
+            print(f"Downloading {file_name}...", flush=True)
+            subprocess.run(command, shell=True, check=True) 
         else:
             print(f"{new_file_name} already exists")
 
