@@ -1,41 +1,57 @@
 import pandas as pd
 from pathlib import Path
 import os
-import time
-from typing import Union, Dict
 import requests
-from tqdm import tqdm
+import sys
+import time
+from tqdm.auto import tqdm  # Works in both Colab and scripts
+from typing import Union, Dict
 
 
-def download_file(url, filename):
-    """Downloads a file with a visible progress bar."""
+
+def download_data(url, file_path):
+    """Downloads a file with an interactive progress bar (real-time in Colab too).
+
+    Works in Jupyter/Colab notebooks and standalone Python scripts.
+
+    Args:
+        url (str): The file URL to download.
+        file_path (str): The local path where the file will be saved.
+    """
     response = requests.get(url, stream=True)
-    
-    if response.status_code != 200:
-        print(f"Failed to download {url}, HTTP Status: {response.status_code}")
-        return
-    
-    total_size = int(response.headers.get("content-length", 0))
-    block_size = 1024  # 1 KB
+    total_size = int(response.headers.get("content-length", 0))  # Get file size
+    chunk_size = 1024 * 4 # 4 kb
 
-    with open(filename, "wb") as file, tqdm(
-        desc=f"Downloading {filename}",
-        total=total_size,
+    # Create tqdm progress bar
+    progress_bar = tqdm(
+        total=total_size or None,  # Handle cases where size is unknown
         unit="B",
         unit_scale=True,
-        unit_divisor=1024
-    ) as progress_bar:
-        for chunk in response.iter_content(chunk_size=block_size):
-            file.write(chunk)
-            progress_bar.update(len(chunk))
+        unit_divisor=1024,
+        desc=os.path.basename(file_path),
+        file=sys.stdout,  # Ensure real-time display in Colab
+        leave=True
+    )
+
+    # Write the file in chunks
+    with open(file_path, "wb") as file:
+        for chunk in response.iter_content(chunk_size=chunk_size):
+            if chunk:  # Only update if there's actual data
+                file.write(chunk)
+                progress_bar.update(len(chunk))  # Update progress bar
+                progress_bar.refresh()  # <<--- Forces real-time update in Colab
+
+    progress_bar.close()
+
+
 
 
 def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
     """Downloads raw data files if they don't exist locally and renames keys.
 
     Args:
-        file_path (dict, optional): Dictionary mapping file names to URLs.
-        out_dir (str, optional): Directory to save files.
+        file_path (dict, optional): Dictionary mapping file names to URLs. Defaults to None.
+        out_dir (str, optional): Directory to save files. Defaults to "".
 
     Raises:
         ValueError: If file_path is None, not a dictionary, or empty.
@@ -43,19 +59,29 @@ def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
     Returns:
         dict: Updated file_path dictionary with renamed keys.
     """
-    if file_path is None or not isinstance(file_path, dict) or len(file_path) == 0:
-        raise ValueError("file_path must be a non-empty dictionary")
+    # Input validation
+    if file_path is None:
+        raise ValueError("file_path cannot be None")
+    if not isinstance(file_path, dict):
+        raise ValueError("file_path must be a dictionary")
+    if len(file_path) == 0:
+        raise ValueError("file_path cannot be empty")
 
+    # Ensure output directory is absolute path
     out_dir = os.path.abspath(out_dir)
-    os.makedirs(out_dir, exist_ok=True)
+    if len(out_dir) > 0:
+        os.makedirs(out_dir, exist_ok=True)
 
+    # Rename keys and download files
     updated_file_path = {}
     for file_name, file_url in file_path.items():
         new_file_name = os.path.join(out_dir, file_name)
         updated_file_path[new_file_name] = file_url
 
         if not os.path.exists(new_file_name):
-            download_file(url=file_url, filename=new_file_name)
+            # command = f'wget "{file_url}" -O "{new_file_name}" -q --show-progress'
+            # os.system(command)
+            download_data(file_url, new_file_name)
         else:
             print(f"{new_file_name} already exists")
 
@@ -65,14 +91,14 @@ def load_raw_data(file_path: Dict = None, out_dir: str = "") -> dict:
 def load_git_data(file_path: Dict = None,
                   interval: Union[str, None] = None,
                   out_dir: str = "",
-                  debug: bool = False) -> pd.DataFrame:
-    """Loads data from a Git repository for reproducibility.
+                  debug: bool =False) -> pd.DataFrame:
+    """
+    Loads data from a Git repository for reproducibility.
 
     Args:
-        file_path (dict, optional): Dictionary mapping filenames to URLs.
-        interval (str, optional): Data interval ('1d', etc.).
-        out_dir (str, optional): Output directory.
-        debug (bool, optional): Enables debug logs.
+        file_path (dict, optional): Dictionary mapping filenames to URLs. Defaults to None.
+        interval (str, optional): Data interval ('1d', etc.). Defaults to None.
+        out_dir (str, optional): Output directory. Defaults to "".
 
     Raises:
         ValueError: If file_path is None, not a dictionary, or empty.
@@ -80,52 +106,63 @@ def load_git_data(file_path: Dict = None,
     Returns:
         pd.DataFrame: Loaded data.
     """
-    if file_path is None or not isinstance(file_path, dict) or len(file_path) == 0:
-        raise ValueError("file_path must be a non-empty dictionary")
+    # Input validation
+    if file_path is None:
+        raise ValueError("file_path cannot be None")
+    if not isinstance(file_path, dict):
+        raise ValueError("file_path must be a dictionary")
+    if len(file_path) == 0:
+        raise ValueError("file_path cannot be empty")
 
+    # Convert to absolute path
     out_dir = os.path.abspath(out_dir)
 
-    # Download files and update file paths
+    # Download raw files and get updated file_path
     updated_file_path = load_raw_data(file_path, out_dir)
 
     if debug:
-        print("\nDEBUG INFORMATION")
-        print(f"out_dir = {out_dir}")
-        print(f"Absolute path = {os.path.abspath(out_dir)}")
-        print(f"Directory exists? {os.path.exists(out_dir)}")
-        print(f"Contents of {out_dir}: {os.listdir(out_dir) if os.path.exists(out_dir) else 'Directory missing'}")
+        # Debugging output
+        print("\n\n", "**" * 15)
+        print("\n$ls -lh")
+        print(f"DEBUG: out_dir = {out_dir}")
+        print(f"DEBUG: Absolute path = {os.path.abspath(out_dir)}")
+        print(f"DEBUG: Directory exists? {os.path.exists(out_dir)}")
+        print(f"DEBUG: Contents of {out_dir}: {os.listdir(out_dir) if os.path.exists(out_dir) else 'Directory missing'}")
 
-    time.sleep(1)  # Sleep to prevent Colab caching issues
+    # Sleep to prevent Colab caching issues
+    time.sleep(1)
 
+    # List files
     ls_files(path=out_dir)
+    print("\n\n", "**" * 15)
 
     # Read and concatenate data
     data = pd.DataFrame()
     for file_name in updated_file_path.keys():
         try:
-            df = pd.read_csv(file_name, header=[0, 1], index_col=0)
+            df = pd.read_csv(f"{file_name}", header=[0, 1], index_col=0)
         except pd.errors.EmptyDataError:
             print(f"Skipping empty file: {file_name}")
             continue
+        file = Path(file_name)
+        print(f"shape of df from {file.name} :  {df.shape}")
 
-        print(f"shape of df from {Path(file_name).name}: {df.shape}")
-
+        # Process data
         df.index = pd.to_datetime(df.index, utc=True).tz_localize(None)
         if interval == "1d":
             df.index = df.index.to_period('D')
-
         df.index.name = "Date"
         df.columns.names = ['Price', 'Ticker']
         data = pd.concat([data, df])
 
-    print("\nData shape:", data.shape)
+    print("\n\ndata shape : ", data.shape)
     return data
 
 
 def ls_files(path=".", debug=False):
     """Lists files in the specified directory with their sizes."""
-    path = os.path.abspath(path)
-    print(f"\nChecking files in directory: {path}", flush=True)
+    path = os.path.abspath(path)  # Convert to absolute path
+    print(f"\n\nChecking files in directory: {path}")
 
     if not os.path.exists(path):
         print("Directory does not exist.", flush=True)
@@ -134,7 +171,7 @@ def ls_files(path=".", debug=False):
     files = os.listdir(path)
 
     if debug:
-        print(f"Files found: {files}", flush=True)
+        print(f"Files found: {files}", flush=True)  # Debug print
 
     if not files:
         print("No files found in directory.", flush=True)
@@ -149,7 +186,8 @@ def ls_files(path=".", debug=False):
             elif size >= 1024:
                 print(f"{filename} {size / 1024:.2f}K")
             else:
-                print(f"{filename} {size}B", flush=True)
+                # print(f"{filename} {size}B", flush=True)
+                print(f"{filename} {size}B")
         else:
             print(f"{filename} (Not a file, might be a directory)")
 
