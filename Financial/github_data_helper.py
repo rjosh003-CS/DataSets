@@ -1,11 +1,12 @@
 import pandas as pd
 from pathlib import Path
 import os
+import time
+from typing import Union, Dict
 import requests
 import sys
 import time
 from tqdm.auto import tqdm  # Works in both Colab and scripts
-from typing import Union, Dict
 
 
 
@@ -20,26 +21,25 @@ def download_data(url, file_path):
     """
     response = requests.get(url, stream=True)
     total_size = int(response.headers.get("content-length", 0))  # Get file size
-    chunk_size = 1024 * 4 # 4 kb
+    chunk_size = 1024 * 2 # 2 KB chunks
 
     # Create tqdm progress bar
     progress_bar = tqdm(
-        total=total_size or None,  # Handle cases where size is unknown
+        total=total_size or None,  # Handle unknown size
         unit="B",
         unit_scale=True,
         unit_divisor=1024,
-        desc=os.path.basename(file_path),
-        file=sys.stdout,  # Ensure real-time display in Colab
+        desc=Path(file_path).name,  # More readable
         leave=True
     )
 
-    # Write the file in chunks
+    # Write file in chunks
     with open(file_path, "wb") as file:
         for chunk in response.iter_content(chunk_size=chunk_size):
-            if chunk:  # Only update if there's actual data
+            if chunk:  # Only update if data is received
                 file.write(chunk)
                 progress_bar.update(len(chunk))  # Update progress bar
-                progress_bar.refresh()  # <<--- Forces real-time update in Colab
+                sys.stdout.flush()  # Force immediate update in Colab
 
     progress_bar.close()
 
@@ -195,17 +195,17 @@ def ls_files(path=".", debug=False):
 
 
 # #  Example of loading files
-# # file_path = {
-# #     # file 1
-# #     "S&P500_5year_daily_data_0.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_0.csv",
+# file_path = {
+#     # file 1
+#     "S&P500_5year_daily_data_0.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_0.csv",
 
-# #     # file 2
-# #     "S&P500_5year_daily_data_1.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_1.csv",
+#     # file 2
+#     "S&P500_5year_daily_data_1.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_1.csv",
 
-# #     # file 3
-# #     "S&P500_5year_daily_data_2.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_2.csv"
-# # }
+#     # file 3
+#     "S&P500_5year_daily_data_2.csv": "https://raw.githubusercontent.com/rjosh003-CS/DataSets/refs/heads/main/Data/Financial/OHLC/S%26P500_5year_daily_data_2.csv"
+# }
 
-# # # print(data.shape)
-# # data = load_git_data(file_path=file_path, interval='1d', out_dir="data")
-# # data.head()
+# # print(data.shape)
+# data = load_git_data(file_path=file_path, interval='1d', out_dir="data")
+# data.head()
