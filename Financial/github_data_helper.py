@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 
 def download_file(url, filename):
-    """Downloads a file with a visible progress bar in Colab."""
+    """Downloads a file with a visible progress bar."""
     response = requests.get(url, stream=True)
     
     if response.status_code != 200:
